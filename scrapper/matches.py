@@ -9,7 +9,7 @@ class Match:
         """ send get request to html web page and return soup"""
         # Set the user-agent header
         headers = {
-            "C"
+            
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
         }
 
@@ -48,10 +48,15 @@ class Match:
             status=match.find('span',class_="ds-text-tight-xs ds-font-bold ds-uppercase ds-leading-5").text
             if status=="RESULT":
                 status="Finished"
+            print(status)
+            if status=="Match delayed - rain":
+                result="Match Delayed Due to rain"
+            else:
+                result_elem=match.find('p',class_="ds-text-tight-s ds-font-regular ds-truncate ds-text-typo")
+                result=result_elem.find('span').text
             
             tournament=match.find('div',class_="ds-text-tight-xs ds-truncate ds-text-typo-mid3").text
-            result_elem=match.find('p',class_="ds-text-tight-s ds-font-regular ds-truncate ds-text-typo")
-            result=result_elem.find('span').text
+            
             
             if status != "Finished":
                 team1_score = "None"
@@ -86,13 +91,7 @@ class Match:
             "link": 'https://www.espncricinfo.com' + link['href']
                 }
             match_info_json.append(match_info)
-
-            
-           
-
-        
         return match_info_json
-
 
 
     def get_matchlink(self):
