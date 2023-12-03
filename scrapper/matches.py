@@ -5,7 +5,7 @@ class Match:
         self.base_url = "https://www.espncricinfo.com/live-cricket-score"
 
 
-    def get_soup(self):
+    def get_soup(self,url):
         """ send get request to html web page and return soup"""
         # Set the user-agent header
         headers = {
@@ -13,7 +13,7 @@ class Match:
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
         }
 
-        response = requests.get(self.base_url, headers=headers)
+        response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.content, 'html.parser')
         return soup
 
@@ -46,21 +46,31 @@ class Match:
                 if team1==team2:
                     team2=match.find('div',class_="ds-flex ds-items-center ds-min-w-0 ds-mr-1")['title']  #for live
             status=match.find('span',class_="ds-text-tight-xs ds-font-bold ds-uppercase ds-leading-5").text
-            if status=="RESULT":
-                status="Finished"
-            print(status)
-            if status=="Match delayed - rain":
-                result="Match Delayed Due to rain"
-            else:
-                result_elem=match.find('p',class_="ds-text-tight-s ds-font-regular ds-truncate ds-text-typo")
-                result=result_elem.find('span').text
-            
             tournament=match.find('div',class_="ds-text-tight-xs ds-truncate ds-text-typo-mid3").text
             
-            
-            if status != "Finished":
-                team1_score = "None"
-                team2_score="None"
+            if status=="RESULT":
+                status="Finished"
+            if status== 'Live' or status=='Drinks' or status=='Stumps':
+                match_elem=match.find('div',class_='ds-relative')
+                try:
+                    team1_score=match_elem.find('strong',class_="ds-text-typo-mid3").text
+                except AttributeError:
+                    team1_score=None
+                try:
+                    team2_score=match_elem.find('strong',class_='').text
+                except AttributeError:
+                    team2_score=None
+               
+            try:
+                result_elem=match.find('p',class_="ds-text-tight-s ds-font-regular ds-truncate ds-text-typo")
+                result=result_elem.find('span').text
+            except AttributeError:
+                if status=="Match delayed - wet outfield" or "Match delayed - rain":
+                    result="Match delayed"
+        
+            # if status != "Finished":
+            #     team1_score = "None"
+            #     team2_score="None"
             else:
             
                 try:
@@ -95,7 +105,7 @@ class Match:
 
 
     def get_matchlink(self):
-        soup = self.get_soup()
+        soup = self.get_soup(self.base_url)
         matchlink_map = self.extract_match_links(soup)
         return matchlink_map
     
